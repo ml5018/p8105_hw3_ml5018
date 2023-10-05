@@ -13,6 +13,22 @@ Load the package to be used for problem solving.
 library(tidyverse)
 
 options(tibble.print_min = 5)
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
 ```
 
 # Problem 1
@@ -21,7 +37,7 @@ options(tibble.print_min = 5)
 
 This problem uses the Instacart data. Load the data from the `p8105.datasets` using the following code chunk.
 
-```{r loading}
+```{r loading_1}
 library(p8105.datasets)
 data("instacart")
 ```
@@ -56,19 +72,144 @@ The 15 variables contain information about the order, product and customer, as l
 
 And some of the key characteristics of these variables are summarized below.
 
-```{r}
+```{r description_1}
 skimr::skim(instacart)
 ```
 
 The code chunk below gives out a few illustrative examples of observations.
 
-```{r description}
+```{r illustration_1}
 print(instacart, width = Inf)
 ```
 
 Then, do or answer the following (commenting on the results of each):
 
 How many aisles are there, and which aisles are the most items ordered from?
+
+```{r aisle}
+instacart |>
+  group_by(aisle_id, aisle) |>
+  summarize(n_obs = n()) |>
+  arrange(desc(n_obs))
+```
+
+There are `r instacart |> pull(aisle_id) |> max()` aisles in total, among which the most items come from `fresh vegetables` and `fresh fruits`, with little difference between the amounts of these two aisles.
+
 Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
+
+```{r aisle_plot}
+instacart |>
+  group_by(aisle) |>
+  summarize(n_obs = n()) |>
+  filter(n_obs > 10000) |>
+  ggplot(aes(x = aisle, y = n_obs)) +
+  geom_col(fill = "blue") +
+  coord_flip() +
+  labs(
+    title = "Number of Items Ordered at Each Aisle",
+    x = "Aisle name",
+    y = "Number of items ordered",
+    caption = "Note: limited to aisles with more than 10000 items ordered"
+  )
+```
+
+A column plot is used to visualize the data we get. To show aisle names clearly without overlapping, the x and y axis need to be flipped.
+
+It can be seen from the plot that "fresh vegetables" and "fresh fruits" possess the most itmes ordered, which verifies the result we get in the lase part.
+
 Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+
+```{r table_aisle}
+get_table_aisle = function(aisle_name){
+  result = 
+    instacart |>
+    filter(aisle == aisle_name) |>
+    group_by(product_name, product_id) |>
+    summarize(n_obs = n()) |>
+    arrange(desc(n_obs)) |>
+    mutate(aisle = aisle_name) |>
+    select(aisle, everything())
+  return(result[1:3, ])
+}
+
+table_popular = 
+  bind_rows(
+    get_table_aisle("baking ingredients"), 
+    get_table_aisle("dog food care"), 
+    get_table_aisle("packaged vegetables fruits")
+    )
+table_popular |>
+  knitr::kable()
+```
+
+The protocol for each of the three aisles are the same, thus to facilitate the code, define a function `get_table_aisle` to implement the main process and then bind the resulting rows from the function.
+
+Separated tables can also be generated using this function.
+
+```{r}
+get_table_aisle("baking ingredients") |>
+  select(-aisle) |>
+  knitr::kable()
+get_table_aisle("dog food care") |>
+  select(-aisle) |>
+  knitr::kable()
+get_table_aisle("packaged vegetables fruits") |>
+  select(-aisle) |>
+  knitr::kable()
+```
+
+It can be seen from the tables that there are siginificant differences in the number of most ordered items from different aisles.
+
 Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+
+```{r table_hour}
+get_table_hour = function(order_name){
+  result = 
+    instacart |>
+    filter(product_name == order_name) |>
+    group_by(order_dow) |>
+    summarize(
+      mean_hour_of_the_day = mean(order_hour_of_day)
+    ) |>
+    mutate(product_name = order_name,
+           order_dow = case_match(
+             order_dow,
+             0 ~ "Sunday",
+             1 ~ "Monday",
+             2 ~ "Tuesday",
+             3 ~ "Wednesday",
+             4 ~ "Thursday",
+             5 ~ "Friday",
+             6 ~ "Saturday"
+           )) |>
+    pivot_wider(
+      names_from = order_dow,
+      values_from = mean_hour_of_the_day
+    ) |>
+    select(product_name, everything())
+  return(result)
+}
+
+table_hour = bind_rows(
+  get_table_hour("Pink Lady Apples"),
+  get_table_hour("Coffee Ice Cream")
+)
+
+table_hour |> knitr::kable()
+```
+
+The method is similar to the one used in last problem, defining a function `get_table_hour` to carry out the main process and then applying the function to get a combined table.
+
+The required 2 x 7 table can also be obtained using this function.
+
+```{r}
+get_table_hour("Pink Lady Apples") |>
+  select(-product_name) |>
+  knitr::kable()
+get_table_hour("Coffee Ice Cream") |>
+  select(-product_name) |>
+  knitr::kable()
+```
+
+It can be concluded from the tables that there is no siginificant differnce in the ordered number of the two products, all of which lie between 10 and 16.
+
