@@ -1,0 +1,15 @@
+---
+title: "p8105_hw3_ml5018"
+author: "Luan Mengxiao"
+date: 2023-10-05
+output: github_document
+---
+
+This is a R Markdown document for homework 3.
+
+Load the package to be used for problem solving.
+
+```{r setup, message = FALSE}
+library(tidyverse)
+```
+
