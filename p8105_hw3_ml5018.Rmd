@@ -329,3 +329,106 @@ brfss_smart2010 |>
 Some of the settings were set up in the first code chunk, applying for all the plots generated.
 
 It can be concluded from the plot that the overall patterns of data value distribution for response are quite similar in the two years chosen.
+
+# Problem 3
+
+## loading the data
+
+Load, tidy, merge, and otherwise organize the data sets. Your final dataset should include all originally observed variables; exclude participants less than 21 years of age, and those with missing demographic data; and encode data with reasonable variable classes (i.e. not numeric, and using factors with the ordering of tables and plots in mind).
+
+```{r import}
+nhanes_accel = 
+  read_csv("./data/nhanes_accel.csv") |>
+  janitor::clean_names() |>
+  pivot_longer(
+    min1:min1440,
+    names_to = "min",
+    names_prefix = "min",
+    values_to = "value"
+  )
+nhanes_covar = read_csv("./data/nhanes_covar.csv", skip = 4) |>
+  janitor::clean_names()
+
+nhanes_df = 
+  full_join(nhanes_covar, nhanes_accel) |>
+  drop_na(sex, age, bmi, education) |>
+  filter(age >= 21) |>
+  mutate(sex = case_match(sex, 1 ~ "male", 2 ~ "female"),
+         sex = factor(sex, levels = c("male", "female")),
+         education = case_match(education,
+                                1 ~ "Less than high school",
+                                2 ~ "High school equivalent",
+                                3 ~ "More than high school"),
+         education = factor(education, 
+                            levels = c("Less than high school", "High school equivalent", "More than high school")))
+```
+
+## explore the data
+
+Produce a reader-friendly table for the number of men and women in each education category, and create a visualization of the age distributions for men and women in each education category. Comment on these items.
+
+```{r table_education}
+nhanes_df |>
+  group_by(sex, education) |>
+  summarize(n_obs = n()) |>
+  pivot_wider(
+    names_from = education,
+    values_from = n_obs
+  ) |>
+  knitr::kable()
+```
+
+There is no significant difference between number of men and women in eduacation group "Less than high school" and "more than high school", but the number of men in "High school equivalent" group is significantly larger than that of women.
+
+The table can also be flipped if different strategies are used for `pivot_wider` function, using names from `sex` instead of `education`.
+
+```{r table_sex}
+nhanes_df |>
+  group_by(sex, education) |>
+  summarize(n_obs = n()) |>
+  pivot_wider(
+    names_from = sex,
+    values_from = n_obs
+  ) |>
+  knitr::kable()
+```
+
+Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each participant. Plot these total activities (y-axis) against age (x-axis); your plot should compare men to women and have separate panels for each education level. Include a trend line or a smooth to illustrate differences. Comment on your plot.
+
+```{r comparison}
+nhanes_df |>
+  group_by(seqn) |>
+  summarize(sum = sum(value)) |>
+  left_join(nhanes_df) |>
+  select(sex, age, education, sum) |>
+  ggplot(aes(x = age, y = sum, color = sex)) +
+  geom_point() +
+  geom_smooth() +
+  facet_grid(.~education) +
+  labs(
+    title = "Total Activities against Age for Males and Females",
+    x = "age",
+    y = "Total activity",
+    caption = "Total activity is gained by aggregation across minutes"
+  )
+```
+
+A point plot is drawn due to the disparation of the data, from which we can see that the despite the fluctuation, total activity in "Less than high school" group tends to decrease as age increases, while the other two groups show more stablility across ages.
+
+Accelerometer data allows the inspection activity over the course of the day. Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. Describe in words any patterns or conclusions you can make based on this graph; including smooth trends may help identify differences.
+
+```{r three_panel}
+nhanes_df |>
+  ggplot(aes(x = min, y = value, color = sex)) +
+  geom_line() +
+  geom_smooth() +
+  facet_grid(.~education) +
+  labs(
+    title = "24-Hour Activity Time Courses",
+    x = "time",
+    y = "activity",
+    caption = "Data from nhanes dataset"
+  )
+```
+
+A line plot is applied to manifest the activity changing pattern according to time. It can be seen that while the pattern of male in all three education groups look similar, the activity of female in "More than high school" group shows siginificant difference compared with the other two groups.
