@@ -11,5 +11,64 @@ Load the package to be used for problem solving.
 
 ```{r setup, message = FALSE}
 library(tidyverse)
+
+options(tibble.print_min = 5)
 ```
 
+# Problem 1
+
+## load the data
+
+This problem uses the Instacart data. Load the data from the `p8105.datasets` using the following code chunk.
+
+```{r loading}
+library(p8105.datasets)
+data("instacart")
+```
+
+## describe the data
+
+The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and giving illustrative examples of observations.
+
+While the original data is quite extensive, the dataset loaded from `p8105.datasets` represents a cleaned and limited version. The dataset contains 1,384,617 observations of 131,209 unique users, where each row in the dataset is a product from an order. There is a single order per user in this dataset.
+
+The dataset consists of `r nrow(instacart)` observations of `r ncol(instacart)` variables, which form a total of `r nrow(instacart) * ncol(instacart)` data points. The dataset is organized in a longer form that makes it tidy and easy for computation using codes.
+
+Some of the key vaiables of the dataset include `r names(instacart)`.
+
+The 15 variables contain information about the order, product and customer, as listed in details below:
+
+* order_id: order identifier
+* product_id: product identifier
+* add_to_cart_order: order in which each product was added to cart
+* reordered: 1 if this prodcut has been ordered by this user in the past, 0 otherwise
+* user_id: customer identifier
+* eval_set: which evaluation set this order belongs in (Note that the data for use in this class is exclusively from the “train” eval_set)
+* order_number: the order sequence number for this user (1=first, n=nth)
+* order_dow: the day of the week on which the order was placed
+* order_hour_of_day: the hour of the day on which the order was placed
+* days_since_prior_order: days since the last order, capped at 30, NA if order_number=1
+* product_name: name of the product
+* aisle_id: aisle identifier
+* department_id: department identifier
+* aisle: the name of the aisle
+* department: the name of the department
+
+And some of the key characteristics of these variables are summarized below.
+
+```{r}
+skimr::skim(instacart)
+```
+
+The code chunk below gives out a few illustrative examples of observations.
+
+```{r description}
+print(instacart, width = Inf)
+```
+
+Then, do or answer the following (commenting on the results of each):
+
+How many aisles are there, and which aisles are the most items ordered from?
+Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
+Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
