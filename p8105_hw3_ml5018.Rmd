@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
   out.width = "90%"
 )
 
-theme_set(theme_minimal() + theme(legend.position = "bottom"))
+theme_set(theme_minimal() + theme(legend.position = "right"))
 
 options(
   ggplot2.continuous.colour = "viridis",
@@ -402,8 +402,8 @@ nhanes_df |>
   left_join(nhanes_df) |>
   select(sex, age, education, sum) |>
   ggplot(aes(x = age, y = sum, color = sex)) +
-  geom_point() +
-  geom_smooth() +
+  geom_point(alpha = .5) +
+  geom_smooth(alpha = .5) +
   facet_grid(.~education) +
   labs(
     title = "Total Activities against Age for Males and Females",
@@ -420,7 +420,7 @@ Accelerometer data allows the inspection activity over the course of the day. Ma
 ```{r three_panel}
 nhanes_df |>
   ggplot(aes(x = min, y = value, color = sex)) +
-  geom_line() +
+  geom_line(alpha = .5) +
   geom_smooth() +
   facet_grid(.~education) +
   labs(
@@ -431,4 +431,6 @@ nhanes_df |>
   )
 ```
 
-A line plot is applied to manifest the activity changing pattern according to time. It can be seen that while the pattern of male in all three education groups look similar, the activity of female in "More than high school" group shows siginificant difference compared with the other two groups.
+A line plot is applied to manifest the activity changing pattern according to time. The alpha value is set because of the overlapping between different sex groups in one plot.
+
+It can be seen that while the pattern of male in all three education groups look similar, the activity of female in "More than high school" group shows siginificant difference compared with the other two groups.
