@@ -213,3 +213,119 @@ get_table_hour("Coffee Ice Cream") |>
 
 It can be concluded from the tables that there is no siginificant differnce in the ordered number of the two products, all of which lie between 10 and 16.
 
+# Problem 2
+
+## load the data
+
+This problem uses the BRFSS data. Load the data from the `p8105.datasets` package.
+
+```{r loading_2}
+data("brfss_smart2010")
+```
+
+## clean the data
+
+First, do some data cleaning:
+
+* format the data to use appropriate variable names;
+* focus on the “Overall Health” topic
+* include only responses from “Excellent” to “Poor”
+* organize responses as a factor taking levels ordered from “Poor” to “Excellent”
+
+```{r cleaning}
+brfss_smart2010 = 
+  brfss_smart2010 |>
+  janitor::clean_names() |>
+  filter(topic == "Overall Health",
+         response %in% c("Excellent", "Very good", "Good", "Fair", "Poor")) |>
+  mutate(response = factor(response, ordered =TRUE, 
+                           levels = c("Poor", "Fair", "Good", "Very Good", "Excellent")))
+```
+
+## Explore the data
+
+Using this dataset, do or answer the following (commenting on the results of each):
+
+In 2002, which states were observed at 7 or more locations? What about in 2010?
+
+```{r state}
+get_state = function(year_number){
+  result = 
+    brfss_smart2010 |>
+    filter(year == year_number) |>
+    group_by(locationabbr) |>
+    summarize(n_obs = n_distinct(locationdesc)) |>
+    filter(n_obs >= 7)
+  return(result)
+}
+
+brfss_2002 = get_state(2002)
+brfss_2010 = get_state(2010)
+```
+
+In 2002, `r pull(brfss_2002, var = 1)` were observed at 7 or more locations.
+
+In 2010, `r pull(brfss_2010, var = 1)` were observed at 7 or more locations.
+
+The `n_distinct` function is used to count the number of observations in each location, and a function `get_state` is defined to get result from the same process more simlpy.
+
+Construct a dataset that is limited to `Excellent` responses, and contains, year, state, and a variable that averages the `data_value` across locations within a state. Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the `geom_line` geometry and `group` aesthetic will help).
+
+```{r excellent}
+brfss_excellent = 
+  brfss_smart2010 |>
+  filter(response == "Excellent") |>
+  group_by(locationabbr, year) |>
+  summarize(mean_data_value = mean(data_value, na.rm = TRUE)) |>
+  select(year, locationabbr, mean_data_value)
+
+brfss_excellent |>
+  ggplot(aes(x = year, y = mean_data_value, group = locationabbr)) +
+  geom_line() +
+  labs(
+    title = "Spaghetti Plot for `mean_data_value` over time within a state",
+    x = "year",
+    y = "mean_data_value",
+    caption = "Data from BRFSS dataset"
+  )
+```
+
+There are missing values in data_value column, thus `na.rm` is applied to omit these NAs when calculating mean.
+
+From the spaghetti plot we can see the change of mean data value within states over time, which is quite complicated to read from. It can be adjusted by using different colors for different groups, as shown below.
+
+```{r excellent_color}
+brfss_excellent |>
+  ggplot(aes(x = year, y = mean_data_value, color = locationabbr)) +
+  geom_line() +
+  theme(legend.position = "right")
+  labs(
+    title = "Spaghetti Plot for `mean_data_value` over time within a state",
+    x = "year",
+    y = "mean_data_value",
+    caption = "Data from BRFSS dataset"
+  )
+```
+
+
+Make a two-panel plot showing, for the years 2006, and 2010, distribution of `data_value` for responses (“Poor” to “Excellent”) among locations in NY State.
+
+```{r two_panel}
+brfss_smart2010 |>
+  filter(year %in% c(2006,2010),
+         locationabbr == "NY") |>
+  ggplot(aes(x = response, y = data_value, fill = locationdesc)) +
+  geom_col() +
+  facet_grid(.~year) +
+  theme(axis.text.x = element_text()) +
+  labs(
+    title = "`data_value` to `response` Plots for 2006 and 2010",
+    x = "response",
+    y = "data_value",
+    caption = "data from BRFSS dataset"
+  )
+```
+
+Some of the settings were set up in the first code chunk, applying for all the plots generated.
+
+It can be concluded from the plot that the overall patterns of data value distribution for response are quite similar in the two years chosen.
