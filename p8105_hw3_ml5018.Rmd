@@ -337,11 +337,25 @@ brfss_smart2010 |>
     y = "density",
     caption = "data from BRFSS dataset"
   )
+
+brfss_smart2010 |>
+  filter(year %in% c(2006,2010),
+         locationabbr == "NY") |>
+  ggplot(aes(x = response, y = data_value)) +
+  geom_boxplot(aes(fill = response)) +
+  facet_grid(.~year) +
+    theme(axis.text.x = element_text()) +
+  labs(
+    title = "`data_value` to `response` Box Plots for 2006 and 2010",
+    x = "response",
+    y = "data_value",
+    caption = "data from BRFSS dataset"
+  )
 ```
 
-Some of the settings were set up in the first code chunk, applying for all the plots generated. A column and density plot are drawn to compare between different years and response groups.
+Some of the settings were set up in the first code chunk, applying for all the plots generated. A column, density and box plot are drawn to compare between different years and response groups.
 
-It can be concluded from the plot that the overall patterns of data value distribution for response are quite similar in the two years chosen. And for different resonse groups, the "poor" group possesses a significantly different density and distribution compared with other groups, which tend to overlap with each other on the density plot.
+It can be concluded from the plots that the overall patterns of data value distribution for response are quite similar in the two years chosen, despite the different degree of disparation. And for different resonse groups, the "poor" group possesses a significantly different density and distribution compared with other groups, which tend to overlap with each other on the density plot.
 
 # Problem 3
 
