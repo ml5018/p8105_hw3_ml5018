@@ -239,7 +239,7 @@ brfss_smart2010 =
   filter(topic == "Overall Health",
          response %in% c("Excellent", "Very good", "Good", "Fair", "Poor")) |>
   mutate(response = factor(response, ordered =TRUE, 
-                           levels = c("Poor", "Fair", "Good", "Very Good", "Excellent")))
+                           levels = c("Poor", "Fair", "Good", "Very good", "Excellent")))
 ```
 
 ## Explore the data
@@ -307,7 +307,6 @@ brfss_excellent |>
   )
 ```
 
-
 Make a two-panel plot showing, for the years 2006, and 2010, distribution of `data_value` for responses (“Poor” to “Excellent”) among locations in NY State.
 
 ```{r two_panel}
@@ -319,16 +318,30 @@ brfss_smart2010 |>
   facet_grid(.~year) +
   theme(axis.text.x = element_text()) +
   labs(
-    title = "`data_value` to `response` Plots for 2006 and 2010",
+    title = "`data_value` to `response` Column Plots for 2006 and 2010",
     x = "response",
     y = "data_value",
     caption = "data from BRFSS dataset"
   )
+
+brfss_smart2010 |>
+  filter(year %in% c(2006,2010),
+         locationabbr == "NY") |>
+  ggplot(aes(x = data_value, fill = response)) +
+  geom_density(alpha = 0.5) +
+  facet_grid(.~year) +
+  theme(axis.text.x = element_text()) +
+  labs(
+    title = "`data_value` to `response` Density Plots for 2006 and 2010",
+    x = "response",
+    y = "density",
+    caption = "data from BRFSS dataset"
+  )
 ```
 
-Some of the settings were set up in the first code chunk, applying for all the plots generated.
+Some of the settings were set up in the first code chunk, applying for all the plots generated. A column and density plot are drawn to compare between different years and response groups.
 
-It can be concluded from the plot that the overall patterns of data value distribution for response are quite similar in the two years chosen.
+It can be concluded from the plot that the overall patterns of data value distribution for response are quite similar in the two years chosen. And for different resonse groups, the "poor" group possesses a significantly different density and distribution compared with other groups, which tend to overlap with each other on the density plot.
 
 # Problem 3
 
