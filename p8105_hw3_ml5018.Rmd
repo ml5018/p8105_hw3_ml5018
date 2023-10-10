@@ -102,6 +102,7 @@ instacart |>
   group_by(aisle) |>
   summarize(n_obs = n()) |>
   filter(n_obs > 10000) |>
+  mutate(aisle = fct_reorder(aisle, n_obs)) |>
   ggplot(aes(x = aisle, y = n_obs)) +
   geom_col(fill = "blue") +
   coord_flip() +
