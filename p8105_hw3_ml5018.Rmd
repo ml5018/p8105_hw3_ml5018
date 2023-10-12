@@ -430,9 +430,25 @@ nhanes_df |>
   left_join(nhanes_df) |>
   select(sex, age, education, sum) |>
   ggplot(aes(x = age, y = sum, color = sex)) +
-  geom_point(alpha = .5) +
+  geom_point() +
   geom_smooth(alpha = .5) +
-  facet_grid(.~education) +
+  facet_grid(education~.) +
+  labs(
+    title = "Total Activities against Age for Males and Females",
+    x = "age",
+    y = "Total activity",
+    caption = "Total activity is gained by aggregation across minutes"
+  )
+
+nhanes_df |>
+  group_by(seqn) |>
+  summarize(sum = sum(value)) |>
+  left_join(nhanes_df) |>
+  select(sex, age, education, sum) |>
+  ggplot(aes(x = age, y = sum, color = sex)) +
+  geom_line(alpha = .5) +
+  geom_smooth(alpha = .5) +
+  facet_grid(education~.) +
   labs(
     title = "Total Activities against Age for Males and Females",
     x = "age",
@@ -448,15 +464,27 @@ Accelerometer data allows the inspection activity over the course of the day. Ma
 ```{r three_panel}
 nhanes_df |>
   ggplot(aes(x = min, y = value, color = sex)) +
-  geom_line(alpha = .5) +
+  geom_point(alpha = .5) +
   geom_smooth() +
-  facet_grid(.~education) +
+  facet_grid(education~.) +
   labs(
     title = "24-Hour Activity Time Courses",
     x = "time",
     y = "activity",
     caption = "Data from nhanes dataset"
-  )
+  ) 
+
+nhanes_df |>
+  ggplot(aes(x = min, y = value, color = sex)) +
+  geom_line(alpha = .5) +
+  geom_smooth() +
+  facet_grid(education~.) +
+  labs(
+    title = "24-Hour Activity Time Courses",
+    x = "time",
+    y = "activity",
+    caption = "Data from nhanes dataset"
+  ) 
 ```
 
 A line plot is applied to manifest the activity changing pattern according to time. The alpha value is set because of the overlapping between different sex groups in one plot.
